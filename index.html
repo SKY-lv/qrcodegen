@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QRCodeGenerator - 二维码生成器</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;}
+.app{max-width:700px;margin:0 auto;padding:20px;}
+.header{text-align:center;margin-bottom:20px;}
+.header h1{font-size:1.5em;} .header h1 span{color:#0ea5e9;}
+.card{background:#1e293b;border-radius:12px;padding:20px;margin-bottom:16px;}
+.card h2{font-size:14px;margin-bottom:12px;color:#94a3b8;}
+textarea,input,select{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:14px;font-size:14px;resize:none;}
+textarea{font-family:monospace;}
+textarea:focus,input:focus,select:focus{outline:none;border-color:#0ea5e9;}
+.btn{padding:14px 28px;background:#0ea5e9;color:#000;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:500;margin-top:12px;width:100%;}
+.btn:hover{background:#0284c7;}
+.preview{text-align:center;padding:30px;background:#fff;border-radius:12px;margin-top:12px;}
+.preview img{max-width:100%;}
+.options{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;}
+.options input{width:100%;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header"><h1>QR<span>Generator</span></h1></div>
+  
+  <div class="card">
+    <h2>输入内容</h2>
+    <textarea id="content" placeholder="输入文本、URL、邮箱等..." rows="3">https://github.com</textarea>
+    <div class="options">
+      <div><label style="font-size:12px;color:#64748b">大小</label><input type="number" id="size" value="200" min="100" max="400"></div>
+      <div><label style="font-size:12px;color:#64748b">容错</label>
+        <select id="errorCorrection"><option value="L">低(7%)</option><option value="M" selected>中(15%)</option><option value="Q">高(25%)</option><option value="H">最高(30%)</option></select>
+      </div>
+      <div><label style="font-size:12px;color:#64748b">格式</label>
+        <select id="format"><option value="png">PNG</option><option value="svg">SVG</option></select>
+      </div>
+    </div>
+    <button class="btn" onclick="generate()">生成二维码</button>
+  </div>
+  
+  <div class="card">
+    <h2>预览</h2>
+    <div class="preview" id="preview">输入内容点击生成</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+async function generate() {
+  const content = document.getElementById('content').value;
+  if (!content) return;
+  const size = parseInt(document.getElementById('size').value);
+  const format = document.getElementById('format').value;
+  
+  if (format === 'svg') {
+    const svg = QRCode.create(content, { errorCorrectionLevel: document.getElementById('errorCorrection').value, type: 'svg' });
+    document.getElementById('preview').innerHTML = new XMLSerializer().serializeToString(svg);
+  } else {
+    try {
+      const url = await QRCode.toDataURL(content, { width: size, errorCorrectionLevel: document.getElementById('errorCorrection').value });
+      document.getElementById('preview').innerHTML = `<img src="${url}" alt="QR Code">`;
+    } catch(e) {
+      document.getElementById('preview').innerHTML = '<p style="color:#ef4444">生成失败: ' + e.message + '</p>';
+    }
+  }
+}
+</script>
+</body>
+</html>
